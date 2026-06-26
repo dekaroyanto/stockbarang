@@ -271,10 +271,6 @@ export default function TransaksiPage() {
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
             Mutasi Stok Harian
           </h1>
-          <p className="text-zinc-500 text-sm">
-            Catat faktur masuk dan nota penjualan sales untuk memperbarui stok
-            otomatis.
-          </p>
         </div>
         <Button
           onClick={() => {

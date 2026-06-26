@@ -131,9 +131,6 @@ export default function MasterBarangPage() {
           <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
             Master Data Barang
           </h1>
-          <p className="text-zinc-500 text-sm">
-            Kelola daftar inventaris, merk, dan kategori katalog utama.
-          </p>
         </div>
         <Button
           onClick={() => handleOpenDialog()}
@@ -209,7 +206,7 @@ export default function MasterBarangPage() {
             <DialogDescription>
               {barangToEdit
                 ? "Ubah informasi detail barang. Hindari mengubah nama secara drastis jika sudah terlanjur beredar."
-                : "Daftarkan SKU atau jenis barang baru ke dalam katalog sistem."}
+                : "Daftarkan barang baru ke dalam katalog sistem."}
             </DialogDescription>
           </DialogHeader>
 

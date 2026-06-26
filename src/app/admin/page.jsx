@@ -2,159 +2,141 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Package, AlertCircle, TrendingDown, Box } from "lucide-react";
-// Import komponen CRUD yang sudah kita buat sebelumnya
-import BarangTable from "@/components/BarangTable";
-import BarangForm from "@/components/BarangForm";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Package, AlertTriangle, XCircle, FileText } from "lucide-react";
 
-export default function DashboardAdmin() {
-  const [dataBarang, setDataBarang] = useState([]);
+export default function DashboardPage() {
+  const [stats, setStats] = useState({
+    totalStok: 0,
+    stokKritis: 0,
+    stokKosong: 0,
+    temuanOpname: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  // State untuk form CRUD
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [barangToEdit, setBarangToEdit] = useState(null);
-
-  const fetchBarang = async () => {
+  const fetchStats = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("barang")
-      .select("*")
-      .order("created_at", { ascending: false });
 
-    if (!error) setDataBarang(data);
+    // 1. Total Seluruh Stok (Sum of 'stok')
+    const { data: dataStok } = await supabase.from("barang").select("stok");
+
+    // Menghitung jumlah total stok
+    const totalStok = dataStok
+      ? dataStok.reduce((sum, item) => sum + (item.stok || 0), 0)
+      : 0;
+
+    // 2. Stok Kritis (Stok 1 s/d 3) - Menghitung jumlah BARANG (SKU)
+    const { count: countKritis } = await supabase
+      .from("barang")
+      .select("*", { count: "exact", head: true })
+      .lte("stok", 3)
+      .gt("stok", 0);
+
+    // 3. Stok Kosong (Stok 0) - Menghitung jumlah BARANG (SKU)
+    const { count: countKosong } = await supabase
+      .from("barang")
+      .select("*", { count: "exact", head: true })
+      .eq("stok", 0);
+
+    // 4. Jumlah Laporan Hasil Stok Opname
+    const { count: countOpname } = await supabase
+      .from("jurnal_opname")
+      .select("*", { count: "exact", head: true });
+
+    setStats({
+      totalStok: totalStok,
+      stokKritis: countKritis || 0,
+      stokKosong: countKosong || 0,
+      temuanOpname: countOpname || 0,
+    });
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchBarang();
+    fetchStats();
   }, []);
 
-  // Menghitung Statistik Ringkasan (Summary)
-  const totalBarang = dataBarang.length;
-  const barangHabis = dataBarang.filter((b) => b.stok === 0).length;
-  const barangPO = dataBarang.filter((b) => b.stok < 0).length;
-  const stokMenipis = dataBarang.filter(
-    (b) => b.stok > 0 && b.stok <= 3,
-  ).length;
-
-  // Fungsi Helper untuk Tabel CRUD
-  const handleOpenDialog = (barang = null) => {
-    setBarangToEdit(barang);
-    setIsDialogOpen(true);
-  };
-  const handleCloseDialog = () => {
-    setBarangToEdit(null);
-    setIsDialogOpen(false);
-  };
-  const handleSuccessForm = () => {
-    handleCloseDialog();
-    fetchBarang();
-  };
-  const handleDelete = async (id) => {
-    if (confirm("Yakin ingin menghapus?")) {
-      await supabase.from("barang").delete().eq("id", id);
-      fetchBarang();
-    }
-  };
-
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Dashboard */}
+    <div className="p-6 md:p-10 space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
-          Overview Gudang
+        <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
+          Dashboard Inventory
         </h1>
-        <p className="text-zinc-500 mt-1">
-          Ringkasan kondisi inventaris fisik Anda hari ini.
-        </p>
       </div>
 
-      {/* Kartu Statistik (Metrics Cards) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Kartu 1: Total Jenis Barang */}
-        <div className="bg-white p-5 rounded-2xl border border-zinc-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="bg-blue-50 p-2.5 rounded-xl">
-              <Package className="w-5 h-5 text-blue-600" />
+      {/* Grid Cards 4 Kolom */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Card Total Inventaris */}
+        <div className="bg-white p-6 rounded-3xl border border-zinc-200/60 shadow-sm">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+              <Package className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 font-medium">
+                Total Inventaris
+              </p>
+              <h3 className="text-2xl font-bold text-zinc-900">
+                {stats.totalStok.toLocaleString()}
+              </h3>
             </div>
           </div>
-          <div>
-            <h3 className="text-3xl font-black text-zinc-900">{totalBarang}</h3>
-            <p className="text-sm font-medium text-zinc-500">
-              Total Jenis Item
-            </p>
-          </div>
+          <p className="text-xs text-zinc-400">Total unit barang di gudang</p>
         </div>
 
-        {/* Kartu 2: Stok Menipis */}
-        <div className="bg-white p-5 rounded-2xl border border-zinc-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="bg-amber-50 p-2.5 rounded-xl">
-              <TrendingDown className="w-5 h-5 text-amber-600" />
+        {/* Card Stok Kritis */}
+        <div className="bg-white p-6 rounded-3xl border border-zinc-200/60 shadow-sm">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 font-medium">Stok Kritis</p>
+              <h3 className="text-2xl font-bold text-zinc-900">
+                {stats.stokKritis}
+              </h3>
             </div>
           </div>
-          <div>
-            <h3 className="text-3xl font-black text-amber-600">
-              {stokMenipis}
-            </h3>
-            <p className="text-sm font-medium text-zinc-500">
-              Stok Kritis (≤ 3)
-            </p>
-          </div>
+          <p className="text-xs text-zinc-400">Barang dengan stok 1 - 3 unit</p>
         </div>
 
-        {/* Kartu 3: Barang Habis */}
-        <div className="bg-white p-5 rounded-2xl border border-zinc-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="bg-red-50 p-2.5 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-red-600" />
+        {/* Card Stok Kosong */}
+        <div className="bg-white p-6 rounded-3xl border border-zinc-200/60 shadow-sm">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-red-50 rounded-2xl text-red-600">
+              <XCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 font-medium">Stok Kosong</p>
+              <h3 className="text-2xl font-bold text-zinc-900">
+                {stats.stokKosong}
+              </h3>
             </div>
           </div>
-          <div>
-            <h3 className="text-3xl font-black text-red-600">{barangHabis}</h3>
-            <p className="text-sm font-medium text-zinc-500">Stok Kosong</p>
-          </div>
+          <p className="text-xs text-zinc-400">SKU dengan stok 0</p>
         </div>
 
-        {/* Kartu 4: Status Pre-Order (Backorder) */}
-        <div className="bg-white p-5 rounded-2xl border border-zinc-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="bg-purple-50 p-2.5 rounded-xl">
-              <Box className="w-5 h-5 text-purple-600" />
+        {/* Card Temuan Opname */}
+        <div className="bg-white p-6 rounded-3xl border border-zinc-200/60 shadow-sm">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 font-medium">Temuan Opname</p>
+              <h3 className="text-2xl font-bold text-zinc-900">
+                {stats.temuanOpname}
+              </h3>
             </div>
           </div>
-          <div>
-            <h3 className="text-3xl font-black text-purple-600">{barangPO}</h3>
-            <p className="text-sm font-medium text-zinc-500">
-              Status PO (Stok Minus)
-            </p>
-          </div>
+          <p className="text-xs text-zinc-400">Total laporan selisih fisik</p>
         </div>
       </div>
 
-      {/* Dialog Form */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {barangToEdit ? "Edit Data Barang" : "Tambah Barang Baru"}
-            </DialogTitle>
-          </DialogHeader>
-          <BarangForm
-            barangToEdit={barangToEdit}
-            onSuccess={handleSuccessForm}
-            onCancel={handleCloseDialog}
-          />
-        </DialogContent>
-      </Dialog>
+      {isLoading && (
+        <div className="text-center py-10 text-zinc-400 animate-pulse">
+          Memuat data dashboard...
+        </div>
+      )}
     </div>
   );
 }
