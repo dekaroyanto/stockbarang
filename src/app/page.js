@@ -44,7 +44,7 @@ export default function SalesKatalogPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 flex items-center gap-2">
-                Katalog <Sparkles className="w-6 h-6 text-zinc-400" />
+                Katalog
               </h1>
               <p className="text-zinc-500 font-medium mt-1">
                 Cek ketersediaan stok terkini
