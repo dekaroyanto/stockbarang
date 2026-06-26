@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PlusCircle, PackageSearch, Filter } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function MasterBarangPage() {
   const [dataBarang, setDataBarang] = useState([]);
@@ -81,20 +82,45 @@ export default function MasterBarangPage() {
   };
 
   const handleDelete = async (id) => {
-    const konfirmasi = confirm(
-      "Apakah Anda yakin ingin menghapus barang ini dari database?\n\nPerhatian: Jika barang ini sudah memiliki riwayat transaksi, menghapusnya bisa menyebabkan error pada riwayat mutasi.",
-    );
-    if (!konfirmasi) return;
+    // Dialog Konfirmasi SweetAlert
+    const result = await Swal.fire({
+      title: "Hapus Barang Ini?",
+      text: "Perhatian: Jika barang ini sudah ada di riwayat mutasi, bisa menyebabkan error.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444", // red-500
+      cancelButtonColor: "#e4e4e7", // zinc-200
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: '<span style="color: #3f3f46">Batal</span>', // text-zinc-700
+      customClass: { popup: "rounded-3xl" },
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const { error } = await supabase.from("barang").delete().eq("id", id);
       if (error) throw error;
+
+      Swal.fire({
+        icon: "success",
+        title: "Terhapus!",
+        text: "Data barang berhasil dihapus dari sistem.",
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: "rounded-3xl" },
+      });
+
       fetchBarang();
     } catch (error) {
-      alert(
-        "Gagal menghapus data. Pastikan barang ini tidak memiliki riwayat transaksi sebelum dihapus.\nError: " +
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menghapus",
+        text:
+          "Pastikan barang ini tidak memiliki riwayat mutasi. Error: " +
           error.message,
-      );
+        confirmButtonColor: "#18181b",
+        customClass: { popup: "rounded-3xl" },
+      });
     }
   };
 

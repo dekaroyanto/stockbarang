@@ -43,6 +43,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function TransaksiPage() {
   const [listTransaksi, setListTransaksi] = useState([]);
@@ -118,8 +119,15 @@ export default function TransaksiPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.barang_id)
-      return alert("Silakan pilih barang terlebih dahulu!");
+    if (!formData.barang_id) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Oops...",
+        text: "Silakan cari dan pilih barang terlebih dahulu!",
+        confirmButtonColor: "#18181b",
+        customClass: { popup: "rounded-3xl" },
+      });
+    }
 
     const hitungJumlahBaru =
       formType === "Keluar"
@@ -176,19 +184,43 @@ export default function TransaksiPage() {
           .eq("id", formData.barang_id);
       }
 
+      Swal.fire({
+        icon: "success",
+        title: "Tercatat!",
+        text: "Mutasi barang berhasil disimpan dan stok otomatis diperbarui.",
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: "rounded-3xl" },
+      });
+
       resetForm();
       fetchTransaksi();
       fetchBarang();
     } catch (error) {
-      alert("Gagal menyimpan mutasi: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan",
+        text: error.message,
+        confirmButtonColor: "#18181b",
+        customClass: { popup: "rounded-3xl" },
+      });
     }
   };
 
   const handleDelete = async (tx) => {
-    const konfirmasi = confirm(
-      `Yakin ingin menghapus mutasi ini?\n\nMenghapus mutasi ini akan otomatis MENGEMBALIKAN stok barang ke kondisi semula.`,
-    );
-    if (!konfirmasi) return;
+    const result = await Swal.fire({
+      title: "Hapus Jurnal Mutasi?",
+      text: "Menghapus mutasi ini akan OTOMATIS MENGEMBALIKAN stok barang ke kondisi semula.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#e4e4e7",
+      confirmButtonText: "Ya, Kembalikan Stok!",
+      cancelButtonText: '<span style="color: #3f3f46">Batal</span>',
+      customClass: { popup: "rounded-3xl" },
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const { data: barang } = await supabase
@@ -203,13 +235,27 @@ export default function TransaksiPage() {
         .eq("id", tx.barang_id);
       await supabase.from("transaksi").delete().eq("id", tx.id);
 
+      Swal.fire({
+        icon: "success",
+        title: "Stok Dikembalikan!",
+        text: "Jurnal dihapus dan stok barang telah direvisi otomatis.",
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: "rounded-3xl" },
+      });
+
       fetchTransaksi();
       fetchBarang();
     } catch (error) {
-      alert("Gagal menghapus mutasi: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Terjadi Kesalahan",
+        text: error.message,
+        confirmButtonColor: "#18181b",
+        customClass: { popup: "rounded-3xl" },
+      });
     }
   };
-
   const getSelectedBarangName = () => {
     const selected = listBarang.find((b) => b.id === formData.barang_id);
     return selected

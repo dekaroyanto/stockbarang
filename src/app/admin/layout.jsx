@@ -7,6 +7,7 @@ import {
   Package,
   ArrowRightLeft,
   Settings,
+  ClipboardCheck,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -17,6 +18,7 @@ export default function AdminLayout({ children }) {
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Barang", href: "/admin/barang", icon: Package },
     { name: "Mutasi", href: "/admin/transaksi", icon: ArrowRightLeft },
+    { name: "Opname", href: "/admin/stock-opname", icon: ClipboardCheck },
     { name: "Pengaturan", href: "/admin/pengaturan", icon: Settings },
   ];
 

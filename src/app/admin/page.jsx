@@ -140,40 +140,6 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
-      {/* Bagian Tabel Data (Dibungkus agar rapi) */}
-      <div className="bg-white rounded-3xl border border-zinc-200/60 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-zinc-900">
-              Database Inventaris
-            </h2>
-            <p className="text-sm text-zinc-500">
-              Kelola master data barang di sini.
-            </p>
-          </div>
-          <Button
-            onClick={() => handleOpenDialog()}
-            className="bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl"
-          >
-            + Tambah Barang Baru
-          </Button>
-        </div>
-
-        <div className="p-6 overflow-x-auto">
-          {isLoading ? (
-            <div className="text-center py-10 text-zinc-400 animate-pulse">
-              Menghitung ulang stok...
-            </div>
-          ) : (
-            <BarangTable
-              data={dataBarang}
-              onEdit={handleOpenDialog}
-              onDelete={handleDelete}
-            />
-          )}
-        </div>
-      </div>
-
       {/* Dialog Form */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-2xl">

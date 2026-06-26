@@ -10,21 +10,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Swal from "sweetalert2";
 
 export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
+  // Inisialisasi state dengan nilai default
   const [formData, setFormData] = useState({
     nama_barang: "",
     merk: "",
     kategori: "",
-    kondisi: "Baru",
+    kondisi: "Baru", // Default ke 'Baru'
     stok: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Jika sedang mode edit, isi form dengan data yang sudah ada
+  // Efek ini akan berjalan saat modal dibuka atau barangToEdit berubah
   useEffect(() => {
     if (barangToEdit) {
-      setFormData(barangToEdit);
+      setFormData({
+        nama_barang: barangToEdit.nama_barang || "",
+        merk: barangToEdit.merk || "",
+        kategori: barangToEdit.kategori || "",
+        kondisi: barangToEdit.kondisi || "Baru",
+        stok: barangToEdit.stok || 0,
+      });
+    } else {
+      // Jika mode tambah baru, reset ke default
+      setFormData({
+        nama_barang: "",
+        merk: "",
+        kategori: "",
+        kondisi: "Baru",
+        stok: 0,
+      });
     }
   }, [barangToEdit]);
 
@@ -43,20 +60,34 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
 
     try {
       if (barangToEdit) {
-        // Mode Edit
         const { error } = await supabase
           .from("barang")
           .update(formData)
           .eq("id", barangToEdit.id);
         if (error) throw error;
       } else {
-        // Mode Tambah Baru
         const { error } = await supabase.from("barang").insert([formData]);
         if (error) throw error;
       }
-      onSuccess(); // Panggil fungsi ini jika berhasil untuk merefresh tabel
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: "Data barang telah disimpan.",
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: "rounded-3xl" },
+      });
+
+      onSuccess();
     } catch (error) {
-      alert("Terjadi kesalahan: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan!",
+        text: error.message,
+        confirmButtonColor: "#18181b",
+        customClass: { popup: "rounded-3xl" },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +103,7 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
           value={formData.nama_barang}
           onChange={handleChange}
           required
+          className="rounded-xl"
         />
       </div>
 
@@ -81,9 +113,10 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
           <Input
             id="merk"
             name="merk"
-            value={formData.merk || ""}
+            value={formData.merk}
             onChange={handleChange}
-            placeholder="Bisa dikosongkan"
+            placeholder="Contoh: Sharp"
+            className="rounded-xl"
           />
         </div>
         <div className="space-y-2">
@@ -91,9 +124,10 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
           <Input
             id="kategori"
             name="kategori"
-            value={formData.kategori || ""}
+            value={formData.kategori}
             onChange={handleChange}
-            placeholder="Contoh: Lemari Es"
+            placeholder="Contoh: Elektronik"
+            className="rounded-xl"
           />
         </div>
       </div>
@@ -101,11 +135,16 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Kondisi</Label>
-          <Select value={formData.kondisi} onValueChange={handleSelectChange}>
-            <SelectTrigger>
+          {/* Pastikan value terikat dengan formData.kondisi */}
+          <Select
+            key={formData.kondisi} // TAMBAHKAN BARIS INI
+            value={formData.kondisi}
+            onValueChange={handleSelectChange}
+          >
+            <SelectTrigger className="rounded-xl bg-white border-zinc-200">
               <SelectValue placeholder="Pilih Kondisi" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               <SelectItem value="Baru">Baru</SelectItem>
               <SelectItem value="Tarikan">Tarikan</SelectItem>
             </SelectContent>
@@ -120,15 +159,25 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
             value={formData.stok}
             onChange={handleChange}
             required
+            className="rounded-xl"
           />
         </div>
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="rounded-xl"
+        >
           Batal
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl"
+        >
           {isLoading ? "Menyimpan..." : "Simpan Data"}
         </Button>
       </div>
