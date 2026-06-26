@@ -126,7 +126,7 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
             name="kategori"
             value={formData.kategori}
             onChange={handleChange}
-            placeholder="Contoh: Elektronik"
+            placeholder="Contoh: Lemari Es"
             className="rounded-xl"
           />
         </div>
