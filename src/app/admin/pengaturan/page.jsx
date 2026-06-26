@@ -50,7 +50,7 @@ export default function PengaturanPage() {
         title: "Berhasil!",
         text: "Laporan stok barang berhasil diunduh.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
     } catch (error) {
@@ -103,7 +103,7 @@ export default function PengaturanPage() {
         title: "Berhasil!",
         text: "Jurnal mutasi berhasil diunduh.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
     } catch (error) {

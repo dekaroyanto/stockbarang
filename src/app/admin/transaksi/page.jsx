@@ -189,7 +189,7 @@ export default function TransaksiPage() {
         title: "Tercatat!",
         text: "Mutasi barang berhasil disimpan dan stok otomatis diperbarui.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
 
@@ -240,7 +240,7 @@ export default function TransaksiPage() {
         title: "Stok Dikembalikan!",
         text: "Jurnal dihapus dan stok barang telah direvisi otomatis.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
 

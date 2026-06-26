@@ -75,7 +75,7 @@ export default function BarangForm({ barangToEdit, onSuccess, onCancel }) {
         title: "Berhasil!",
         text: "Data barang telah disimpan.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
 

@@ -65,13 +65,11 @@ export default function StockOpnamePage() {
     if (value === "") {
       await supabase.from("opname_progress").delete().eq("barang_id", id);
     } else {
-      await supabase
-        .from("opname_progress")
-        .upsert({
-          barang_id: id,
-          jumlah_fisik: parseInt(value),
-          updated_at: new Date(),
-        });
+      await supabase.from("opname_progress").upsert({
+        barang_id: id,
+        jumlah_fisik: parseInt(value),
+        updated_at: new Date(),
+      });
     }
   };
 
@@ -108,8 +106,8 @@ export default function StockOpnamePage() {
       Swal.fire({
         icon: "success",
         title: "Sesuai!",
-        timer: 800,
-        showConfirmButton: false,
+        timer: 3000,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
       setVerifiedItems((prev) => ({ ...prev, [item.id]: true }));

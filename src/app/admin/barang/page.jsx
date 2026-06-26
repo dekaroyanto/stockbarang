@@ -106,7 +106,7 @@ export default function MasterBarangPage() {
         title: "Terhapus!",
         text: "Data barang berhasil dihapus dari sistem.",
         timer: 1500,
-        showConfirmButton: false,
+        showConfirmButton: true,
         customClass: { popup: "rounded-3xl" },
       });
 
