@@ -595,34 +595,34 @@ export default function TransaksiPage() {
               </Popover>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="tanggal_transaksi">Tanggal Faktur</Label>
-                <Input
-                  type="date"
-                  id="tanggal_transaksi"
-                  name="tanggal_transaksi"
-                  value={formData.tanggal_transaksi}
-                  onChange={handleInputChange}
-                  required
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jumlah">Jumlah</Label>
-                <Input
-                  type="number"
-                  id="jumlah"
-                  name="jumlah"
-                  min="1"
-                  value={formData.jumlah}
-                  onChange={handleInputChange}
-                  placeholder="Contoh: 5"
-                  required
-                  className="rounded-xl"
-                />
-              </div>
+            {/* <div className="grid grid-cols-2 gap-4"> */}
+            <div className="space-y-2">
+              <Label htmlFor="tanggal_transaksi">Tanggal Faktur</Label>
+              <Input
+                type="date"
+                id="tanggal_transaksi"
+                name="tanggal_transaksi"
+                value={formData.tanggal_transaksi}
+                onChange={handleInputChange}
+                required
+                className="rounded-xl"
+              />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="jumlah">Jumlah</Label>
+              <Input
+                type="number"
+                id="jumlah"
+                name="jumlah"
+                min="1"
+                value={formData.jumlah}
+                onChange={handleInputChange}
+                placeholder="Contoh: 5"
+                required
+                className="rounded-xl"
+              />
+            </div>
+            {/* </div> */}
 
             <div className="space-y-2">
               <Label htmlFor="keterangan">Keterangan / Faktur</Label>
