@@ -20,7 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, PackageSearch, Filter } from "lucide-react";
+import {
+  PlusCircle,
+  PackageSearch,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Package,
+} from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function MasterBarangPage() {
@@ -29,10 +37,24 @@ export default function MasterBarangPage() {
 
   // State untuk Filter & Pencarian
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterKondisi, setFilterKondisi] = useState("Semua"); // 'Semua', 'Baru', atau 'Tarikan'
+  const [filterKondisi, setFilterKondisi] = useState("Semua");
+
+  // State untuk Sorting
+  const [sortField, setSortField] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [barangToEdit, setBarangToEdit] = useState(null);
+
+  // Opsi sorting yang tersedia
+  const sortOptions = [
+    { value: "nama_barang", label: "Nama" },
+    { value: "merk", label: "Merk" },
+    { value: "kategori", label: "Kategori" },
+    { value: "kondisi", label: "Kondisi" },
+    { value: "harga_jual", label: "Harga" },
+    { value: "created_at", label: "Terbaru" },
+  ];
 
   const fetchBarang = async () => {
     setIsLoading(true);
@@ -49,22 +71,51 @@ export default function MasterBarangPage() {
     fetchBarang();
   }, []);
 
-  // Logika Filter Ganda (Pencarian Teks + Dropdown Kondisi)
+  // Handle perubahan field sorting
+  const handleSortFieldChange = (field) => {
+    setSortField(field);
+  };
+
+  // Toggle order (asc/desc)
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
+
+  // Filter data
   const filteredBarang = dataBarang.filter((item) => {
-    // 1. Cek kecocokan teks pencarian
     const keyword = searchQuery.toLowerCase();
     const matchSearch =
       item.nama_barang.toLowerCase().includes(keyword) ||
       (item.merk && item.merk.toLowerCase().includes(keyword)) ||
       (item.kategori && item.kategori.toLowerCase().includes(keyword));
 
-    // 2. Cek kecocokan filter dropdown (Baru/Tarikan/Semua)
     const matchKondisi =
       filterKondisi === "Semua" || item.kondisi === filterKondisi;
 
-    // Tampilkan barang jika lolos kedua filter di atas
     return matchSearch && matchKondisi;
   });
+
+  // Sort data
+  const sortedData = [...filteredBarang].sort((a, b) => {
+    let valA = a[sortField];
+    let valB = b[sortField];
+
+    // Handle null/undefined
+    if (valA == null) return 1;
+    if (valB == null) return -1;
+
+    // Konversi ke string untuk perbandingan
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    const comparison = valA < valB ? -1 : valA > valB ? 1 : 0;
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+
+  // Hitung total stok dari semua barang yang tampil
+  const totalStok = sortedData.reduce((total, item) => {
+    return total + (item.stok || 0);
+  }, 0);
 
   const handleOpenDialog = (barang = null) => {
     setBarangToEdit(barang);
@@ -82,16 +133,15 @@ export default function MasterBarangPage() {
   };
 
   const handleDelete = async (id) => {
-    // Dialog Konfirmasi SweetAlert
     const result = await Swal.fire({
       title: "Hapus Barang Ini?",
       text: "Perhatian: Jika barang ini sudah ada di riwayat mutasi, bisa menyebabkan error.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ef4444", // red-500
-      cancelButtonColor: "#e4e4e7", // zinc-200
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#e4e4e7",
       confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: '<span style="color: #3f3f46">Batal</span>', // text-zinc-700
+      cancelButtonText: '<span style="color: #3f3f46">Batal</span>',
       customClass: { popup: "rounded-3xl" },
     });
 
@@ -124,6 +174,12 @@ export default function MasterBarangPage() {
     }
   };
 
+  // Mendapatkan label sorting saat ini
+  const getCurrentSortLabel = () => {
+    const option = sortOptions.find((opt) => opt.value === sortField);
+    return option ? option.label : "Urutkan";
+  };
+
   return (
     <div className="p-6 md:p-10 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -141,29 +197,29 @@ export default function MasterBarangPage() {
       </div>
 
       <div className="bg-white rounded-3xl border border-zinc-200/60 shadow-sm overflow-hidden">
-        {/* TOOLBAR: Search Bar & Filter Dropdown */}
-        <div className="p-6 border-b border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row justify-between gap-4 items-center">
-          {/* Sisi Kiri: Search & Filter */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        {/* TOOLBAR: Search, Filter, & Sort */}
+        <div className="p-4 md:p-6 border-b border-zinc-100 bg-zinc-50/50 flex flex-col gap-3">
+          {/* Baris 1: Search & Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* Input Pencarian */}
-            <div className="relative w-full sm:w-80 border-zinc-200">
+            <div className="relative flex-1 min-w-[200px]">
               <PackageSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4" />
               <Input
                 type="text"
                 placeholder="Cari nama, merk..."
-                className="pl-10 rounded-xl bg-white border-zinc-200"
+                className="pl-10 rounded-xl bg-white border-zinc-200 h-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
             {/* Dropdown Filter Kondisi */}
-            <div className="relative w-full sm:w-44">
+            <div className="relative w-full sm:w-40">
               <Select value={filterKondisi} onValueChange={setFilterKondisi}>
                 <SelectTrigger className="w-full rounded-xl bg-white border-zinc-200 h-10">
                   <div className="flex items-center gap-2">
                     <Filter className="w-3.5 h-3.5 text-zinc-400" />
-                    <SelectValue placeholder="Pilih Kondisi" />
+                    <SelectValue placeholder="Kondisi" />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -173,23 +229,77 @@ export default function MasterBarangPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Group Sort: Dropdown + Toggle Order */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              {/* Dropdown Sort Field */}
+              <div className="relative flex-1 sm:w-36">
+                <Select value={sortField} onValueChange={handleSortFieldChange}>
+                  <SelectTrigger className="w-full rounded-xl bg-white border-zinc-200 h-10">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400" />
+                      <SelectValue placeholder="Urutkan" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {sortOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Tombol Toggle Asc/Desc */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 rounded-xl border-zinc-200 bg-white hover:bg-zinc-100 flex-shrink-0"
+                onClick={toggleSortOrder}
+                title={sortOrder === "asc" ? "Ascending" : "Descending"}
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp className="w-4 h-4 text-zinc-700" />
+                ) : (
+                  <ArrowDown className="w-4 h-4 text-zinc-700" />
+                )}
+              </Button>
+            </div>
           </div>
 
-          {/* Sisi Kanan: Total Item */}
-          <div className="text-sm font-semibold text-zinc-500 w-full sm:w-auto text-left sm:text-right bg-white px-4 py-2 rounded-xl border border-zinc-200/60 shadow-sm">
-            Total:{" "}
-            <span className="text-zinc-900">{filteredBarang.length}</span> Item
+          {/* Baris 2: Info Total Stok & Status Sort */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-500">
+              <Package className="w-4 h-4 text-zinc-400" />
+              Total Stok: <span className="text-zinc-900">{totalStok}</span>
+              <span className="text-xs text-zinc-400 font-normal">
+                ({sortedData.length} item)
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-zinc-400 bg-white px-3 py-1 rounded-lg border border-zinc-200/60">
+              <span>
+                Sort by:{" "}
+                <span className="text-zinc-700 font-medium">
+                  {getCurrentSortLabel()}
+                </span>
+              </span>
+              <span className="text-zinc-300">|</span>
+              <span className="font-medium text-zinc-700">
+                {sortOrder === "asc" ? "A→Z ↑" : "Z→A ↓"}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="p-6 overflow-x-auto">
+        <div className="p-4 md:p-6 overflow-x-auto">
           {isLoading ? (
             <div className="text-center py-10 text-zinc-400 animate-pulse">
               Memuat database gudang...
             </div>
           ) : (
             <BarangTable
-              data={filteredBarang}
+              data={sortedData}
               onEdit={handleOpenDialog}
               onDelete={handleDelete}
             />
